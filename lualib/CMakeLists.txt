@@ -33,7 +33,12 @@ list ( APPEND LJLIB_C src/lib_package.c )
 
 ## GENERATE VM
 
+# Build minilua
+add_executable ( minilua src/host/minilua.c )
+target_link_libraries ( minilua ${LIBS} )
+
 # Dynasm
+set ( DASM ${CMAKE_CURRENT_SOURCE_DIR}/dynasm/dynasm.lua )
 set ( DASM_T ${CMAKE_CURRENT_SOURCE_DIR}/src/host/buildvm_arch.h )
 
 # 2DO: Proper detection of flags
@@ -67,6 +72,13 @@ list ( APPEND DASM_FLAGS -D VER=${DASM_VER} )
 string ( REPLACE ";" " " DASM_FLAGS_STR "${DASM_FLAGS}")
 
 set ( DASM_DASC ${CMAKE_CURRENT_SOURCE_DIR}/src/vm_${DASM_ARCH}.dasc )
+
+# Generate buildvm arch header
+add_custom_command(OUTPUT ${DASM_T}
+  COMMAND minilua ${DASM} ${DASM_FLAGS} -o ${DASM_T} ${DASM_DASC}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dynasm
+  DEPENDS minilua
+)
 
 # Buildvm
 file ( GLOB SRC_BUILDVM src/host/buildvm*.c )
